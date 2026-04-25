@@ -1,0 +1,18 @@
+{
+  "name": "iZone Climate",
+  "repository": "https://github.com/Vheissu/openhome-izone",
+  "category": "Skill",
+  "description": "Voice control for iZone ducted air conditioning through OpenHome Local Connect.",
+  "trigger_words": [
+    "aircon",
+    "air conditioning",
+    "AC",
+    "climate",
+    "iZone",
+    "heater",
+    "cooling"
+  ],
+  "requires_api_keys": false,
+  "requires_local_helper": true
+}
+
