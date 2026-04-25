@@ -87,6 +87,16 @@ Package the ability:
 ./scripts/package-ability.sh
 ```
 
+The upload zip must contain exactly one top-level directory. The package script
+creates `dist/openhome-izone-ability.zip` with this shape:
+
+```text
+openhome-izone-ability/
+  __init__.py
+  README.md
+  main.py
+```
+
 Then in the OpenHome dashboard:
 
 - Go to `My Abilities`.

@@ -6,6 +6,13 @@
    ./scripts/package-ability.sh
    ```
 
+   The zip must contain exactly one top-level directory, not loose `main.py`
+   files at the zip root. Confirm with:
+
+   ```bash
+   unzip -l dist/openhome-izone-ability.zip
+   ```
+
 2. Open the OpenHome dashboard and go to `My Abilities`.
 
 3. Choose `Add Custom Ability`.
