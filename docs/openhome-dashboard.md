@@ -15,7 +15,7 @@
    - Name: `iZone Climate`
    - Category: `Skill`
    - Description: `Voice control for iZone ducted air conditioning through OpenHome Local Connect.`
-   - Trigger Words: `aircon`, `air conditioning`, `AC`, `climate`, `iZone`, `heater`, `cooling`
+   - Trigger Words: `aircon`, `air conditioning`, `climate`, `climate control`, `iZone`, `heater`, `cooling`, `heating`, `ducted air`
    - Template: `Upload Custom Ability`
    - Code upload: `dist/openhome-izone-ability.zip`
    - Third Party API Keys: none
@@ -31,4 +31,3 @@
 The helper must run on a computer that can reach the iZone bridge on the local
 network. It uses the iZone V2 local API and Open-Meteo for optional weather
 optimisation.
-

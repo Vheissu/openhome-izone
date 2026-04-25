@@ -68,7 +68,37 @@ class HelperTests(unittest.TestCase):
         self.assertIn("zone Study mode auto", labels)
         self.assertEqual(client.commands, [])
 
+    def test_close_zone_does_not_power_off_system(self):
+        client = FakeClient()
+        plan = {
+            "intent": "apply",
+            "zones": [{"name": "Study", "mode": "close"}],
+        }
+        result = izone.apply_plan(plan, client, {"zone_aliases": {}}, dry_run=True)
+        labels = [action["label"] for action in result["actions"]]
+        self.assertEqual(labels, ["zone Study mode close"])
+
+    def test_all_zones_and_airflow(self):
+        client = FakeClient()
+        plan = {
+            "intent": "apply",
+            "zones": [{"name": "all", "mode": "open", "max_airflow": 63}],
+        }
+        result = izone.apply_plan(plan, client, {"zone_aliases": {}}, dry_run=True)
+        labels = [action["label"] for action in result["actions"]]
+        self.assertIn("zone Dining mode open", labels)
+        self.assertIn("zone Study mode open", labels)
+        self.assertIn("zone Master mode open", labels)
+        self.assertIn("zone Dining max airflow 65%", labels)
+        self.assertIn("zone Study max airflow 65%", labels)
+        self.assertIn("zone Master max airflow 65%", labels)
+
+    def test_sleep_timer_range_is_validated(self):
+        client = FakeClient()
+        plan = {"intent": "apply", "system": {"sleep_timer": 721}}
+        with self.assertRaises(ValueError):
+            izone.apply_plan(plan, client, {"zone_aliases": {}}, dry_run=True)
+
 
 if __name__ == "__main__":
     unittest.main()
-

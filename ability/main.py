@@ -64,10 +64,13 @@ class OpenHomeIZoneCapability(MatchingCapability):
 
     def _is_confirmation(self, text):
         cleaned = str(text or "").strip().lower()
+        if re.search(r"\b(no|nope|nah|cancel|stop|don't|do not|not now)\b", cleaned):
+            return False
         return cleaned in (
             "yes",
             "yep",
             "yeah",
+            "yea",
             "confirm",
             "confirmed",
             "proceed",
@@ -75,7 +78,7 @@ class OpenHomeIZoneCapability(MatchingCapability):
             "sure",
             "please do",
             "do it",
-        )
+        ) or bool(re.search(r"\b(yes|yep|yeah|sure|confirm|proceed)\b", cleaned))
 
     def _request_needs_weather(self, text):
         lowered = text.lower()
@@ -84,12 +87,20 @@ class OpenHomeIZoneCapability(MatchingCapability):
             for word in (
                 "weather",
                 "outside",
+                "outdoor",
                 "forecast",
                 "optimise",
                 "optimize",
                 "best setting",
+                "best settings",
                 "efficient",
                 "economical",
+                "humidity",
+                "humid",
+                "rain",
+                "storm",
+                "hot day",
+                "cold day",
             )
         )
 
@@ -150,6 +161,10 @@ class OpenHomeIZoneCapability(MatchingCapability):
 You convert a user's iZone ducted air conditioning request into one JSON object.
 Return JSON only. Do not include markdown or explanations.
 
+This is a voice-first smart-home ability. The user may speak casually after a trigger word such as
+"aircon", "air conditioning", "climate", "climate control", "iZone", "heater", "cooling", "heating", or "ducted air".
+Ignore the trigger word itself and focus on the HVAC request.
+
 Current iZone status:
 %s
 
@@ -182,14 +197,29 @@ Allowed JSON schema:
 
 Rules:
 - Use only zone names that exist in the current status. If a requested zone is unclear, set intent to "question" and ask which zone.
+- If the user asks what is happening, whether the aircon is on, which rooms are active, current temperatures, air quality, humidity, or status, set intent to "status".
 - Do not close other zones unless the user says "only", "except", "just", "bedtime", "working in", or otherwise clearly requests a limited-zone setup.
-- For "turn on the aircon", set power on and keep existing mode and temperature unless the user asks for a change.
-- For "turn off the aircon", set only {"power": "off"}.
+- For "turn on the aircon", set power on and keep existing mode, fan, and temperature unless the user asks for a change.
+- For "turn off the aircon", "turn off climate", or "turn off the system", set only {"power": "off"}.
+- For "turn off the study", "close the lounge", or "switch off that room", close that zone, not the whole system.
 - For cooling, prefer mode "cool", fan "auto", and 23 C unless the user gave another value.
-- For heating, prefer mode "heat", fan "auto", and 21 C unless the user gave another value.
+- For heating or "make it warmer", prefer mode "heat", fan "auto", and 21 C unless the user gave another value.
+- For "make it cooler", reduce the relevant current setpoint by 1 C and use cool mode. For "much cooler", reduce by 2 C.
+- For "make it warmer", increase the relevant current setpoint by 1 C and use heat mode. For "much warmer", increase by 2 C.
+- Always output absolute temperatures in the JSON. Do not output deltas.
 - For a specific zone comfort request, set system power on, the requested mode if any, and set that zone to auto at the target temperature.
+- For "open", use zone mode "open". For "close", "off", or "shut", use zone mode "close". For normal comfort control, use zone mode "auto".
+- For "all zones", "whole house", or "everywhere", include every zone from the current status in zones.
+- For "only", "just", "bedtime", "sleep", "night", "working in", or "movie mode", target the named room or rooms and set close_other_zones true.
+- For "good night" or "bedtime", prefer the bedroom-like zone if named, cool or heat conservatively, quiet fan, and a sleep timer if the user gave a duration.
+- For "quiet", "low noise", or "sleep", set fan "low". For "boost", "quick", or "blast", set fan "high"; use "top" only if the user explicitly says top fan.
+- For "dehumidify", "humid", or "dry it out", set mode "dry" and power on.
+- For "fresh air", "fan only", "ventilate", or "circulate", set mode "vent" and power on.
+- For airflow requests, use max_airflow for phrases like "limit airflow", "cap airflow", or "set airflow to N percent"; use min_airflow only when the user explicitly says minimum airflow.
 - For weather optimisation, use the weather context plus indoor return air temperature. Prefer a conservative energy-saving setting and explain it in spoken_summary.
 - Set requires_confirmation true for broad weather optimisation, closing multiple zones, sleep timers over 4 hours, or any plan that is inferred rather than explicitly requested.
+- Set requires_confirmation true if the command would turn the whole system off while any zone appears active.
+- If the user asks for something unsupported, set intent "question" with a brief spoken_summary explaining what to ask instead.
 - Keep spoken_summary under 24 words.
 """ % (
             json.dumps(status, sort_keys=True),
@@ -218,11 +248,21 @@ Rules:
         power = "on" if system.get("power") == "on" else "off"
         mode = system.get("mode", "unknown")
         setpoint = system.get("setpoint_c")
-        return "The iZone system is %s, mode %s, set to %s C with %s zones." % (
+        active_zones = [
+            zone.get("name")
+            for zone in zones
+            if str(zone.get("mode", "")).lower() in ("open", "auto", "override", "constant")
+        ]
+        active_text = "No zones are active."
+        if active_zones:
+            active_text = "Active zones: %s." % ", ".join(active_zones[:6])
+            if len(active_zones) > 6:
+                active_text = "%s and %s more." % (active_text.rstrip("."), len(active_zones) - 6)
+        return "iZone is %s, %s mode, set to %s C. %s" % (
             power,
             mode,
             setpoint,
-            len(zones),
+            active_text,
         )
 
     def _final_response(self, plan, apply_result):

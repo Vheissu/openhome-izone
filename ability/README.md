@@ -10,9 +10,10 @@ Suggested trigger words:
 
 - aircon
 - air conditioning
-- AC
 - climate
+- climate control
 - iZone
 - heater
 - cooling
-
+- heating
+- ducted air

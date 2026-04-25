@@ -20,14 +20,19 @@ tests. It does not require cloud credentials or paid weather APIs.
 
 Example phrases:
 
-- "Turn on the aircon."
-- "Cool the study to 22."
-- "Set the lounge and dining to 23."
-- "Turn off the heater."
-- "Set fan speed to low."
-- "Only cool the master bedroom tonight."
-- "Optimise the aircon based on today's weather."
-- "What is the iZone status?"
+- "Aircon, turn on cooling."
+- "Air conditioning, cool the study to 22."
+- "Climate, make the lounge a bit warmer."
+- "iZone, only cool the master bedroom tonight."
+- "Aircon, set fan speed to low."
+- "Aircon, boost cooling."
+- "Climate, dry out the house."
+- "Aircon, open all zones."
+- "Aircon, close upstairs."
+- "Climate, optimise the aircon based on today's weather."
+- "iZone, what rooms are active?"
+
+See [docs/voice-commands.md](docs/voice-commands.md) for a fuller command map.
 
 ## Architecture
 
@@ -90,7 +95,7 @@ Then in the OpenHome dashboard:
 - Select category `Skill`.
 - Choose `Upload Custom Ability`.
 - Upload `dist/openhome-izone-ability.zip`.
-- Add trigger words: `aircon`, `air conditioning`, `AC`, `climate`, `iZone`, `heater`, `cooling`.
+- Add trigger words: `aircon`, `air conditioning`, `climate`, `climate control`, `iZone`, `heater`, `cooling`, `heating`, `ducted air`.
 - No third-party API keys are required.
 
 More detailed dashboard notes are in [docs/openhome-dashboard.md](docs/openhome-dashboard.md).
@@ -147,4 +152,3 @@ unzip -l dist/openhome-izone-ability.zip
 - OpenHome Local Connect: https://docs.openhome.com/building-abilities/local-connect
 - Open-Meteo forecast API: https://open-meteo.com/en/docs
 - Open-Meteo geocoding API: https://open-meteo.com/en/docs/geocoding-api
-

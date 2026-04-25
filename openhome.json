@@ -6,13 +6,14 @@
   "trigger_words": [
     "aircon",
     "air conditioning",
-    "AC",
     "climate",
+    "climate control",
     "iZone",
     "heater",
-    "cooling"
+    "cooling",
+    "heating",
+    "ducted air"
   ],
   "requires_api_keys": false,
   "requires_local_helper": true
 }
-
