@@ -27,7 +27,6 @@ class OpenHomeIZoneCapability(MatchingCapability):
             user_request = await self.capability_worker.wait_for_complete_transcription()
             if not user_request:
                 await self.capability_worker.speak("I did not catch the air conditioning request.")
-                self.capability_worker.resume_normal_flow()
                 return
 
             status = await self._helper_json("status --json", timeout=20)
@@ -42,17 +41,14 @@ class OpenHomeIZoneCapability(MatchingCapability):
                 await self.capability_worker.speak(
                     plan.get("spoken_summary") or self._status_summary(status)
                 )
-                self.capability_worker.resume_normal_flow()
                 return
 
             if plan.get("requires_confirmation"):
                 summary = plan.get("spoken_summary") or "I can update the iZone settings."
-                confirmed = await self.capability_worker.run_confirmation_loop(
-                    "%s Should I go ahead?" % summary
-                )
-                if not confirmed:
+                await self.capability_worker.speak("%s Should I go ahead?" % summary)
+                confirmation = await self.capability_worker.user_response()
+                if not self._is_confirmation(confirmation):
                     await self.capability_worker.speak("No problem. I have left the air conditioning unchanged.")
-                    self.capability_worker.resume_normal_flow()
                     return
 
             apply_result = await self._apply_plan(plan)
@@ -65,6 +61,21 @@ class OpenHomeIZoneCapability(MatchingCapability):
             )
         finally:
             self.capability_worker.resume_normal_flow()
+
+    def _is_confirmation(self, text):
+        cleaned = str(text or "").strip().lower()
+        return cleaned in (
+            "yes",
+            "yep",
+            "yeah",
+            "confirm",
+            "confirmed",
+            "proceed",
+            "go ahead",
+            "sure",
+            "please do",
+            "do it",
+        )
 
     def _request_needs_weather(self, text):
         lowered = text.lower()
@@ -234,4 +245,3 @@ Rules:
             self.worker.editor_logging_handler.error(message)
         except Exception:
             pass
-
